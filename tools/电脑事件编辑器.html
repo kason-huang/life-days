@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>日子有数 · 电脑事件编辑器</title>
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#faf7f1;color:#382d29;font:16px/1.6 system-ui,sans-serif}main{max-width:940px;margin:64px auto;padding:0 24px}h1{font-size:36px;margin-bottom:8px}p{color:#68776e}section{background:white;border-radius:20px;padding:24px;margin:24px 0}form{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px}label{display:flex;flex-direction:column;gap:6px}input,select,button{font:inherit;padding:10px;border:1px solid #ccd5cd;border-radius:9px;min-width:0}button{cursor:pointer;background:#c86140;color:white;border:0}button.secondary{color:#c86140;background:#ecd6c4}button:disabled{opacity:.4;cursor:default}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}.check{flex-direction:row;align-items:center;align-self:end;padding:10px 0}.table{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{text-align:left;border-bottom:1px solid #edf0ea;padding:12px;word-break:break-word}th{color:#68776e;font-size:14px}.note{font-size:14px}#status{min-height:24px}#empty{text-align:center;padding:32px;color:#68776e}@media(max-width:650px){main{margin:24px auto}form{grid-template-columns:1fr}h1{font-size:28px}}
+</style>
+<main><p>日子有数 / 电脑输入</p><h1>在大屏上，整理值得记住的日子。</h1><p>填写事件 → 下载 JSON → 传到手机 → 应用右上角「从电脑文件导入」。</p>
+<section><form id="form"><label>事件名称<input id="title" required maxlength="100" placeholder="例如：下一次旅行"></label><label>事件类型<select id="type"><option value="anniversary">纪念日 · 已经多少天</option><option value="countdown">倒计时 · 还有多少天</option></select></label><label>历法<select id="calendar"><option value="solar">公历</option><option value="lunar">农历</option></select></label><label class="lunar-field" hidden>农历年份<input id="lunar-year" type="number" min="1900" max="2100" value="2000"></label><label class="lunar-field" hidden>农历月份<select id="lunar-month"></select></label><label class="lunar-field" hidden>农历日期<select id="lunar-day"></select></label><label class="lunar-field" hidden>闰月规则<select id="lunar-leap"><option value="prefer-leap">有闰月过闰月，否则过普通月</option><option value="regular">每年只过普通月</option></select></label><label class="lunar-field" hidden>三十遇小月<select id="lunar-short"><option value="last">本月廿九</option><option value="next">下月初一</option></select></label><label><span id="date-label">起始日期</span><input id="date" type="date" required min="1900-01-01" max="2200-12-31"></label><label id="repeat-field" hidden>重复规则<select id="repeat"><option value="none">不重复</option><option value="weekly">每周重复</option><option value="yearly">每年重复</option></select></label><label>图标<select id="icon"><option>♡</option><option>🎂</option><option>💍</option><option>✈️</option><option>🌱</option><option>🏡</option><option>🎓</option><option>◷</option></select></label><label id="leap-field" hidden>2 月 29 日的非闰年规则<select id="leap"><option value="feb28">2 月 28 日</option><option value="mar1">3 月 1 日</option></select></label><label class="check" id="inclusive-field"><input id="inclusive" type="checkbox">起始日算第 1 天</label><label class="check" id="birthday-field" hidden><input id="birthday" type="checkbox">这是生日（每年重复）</label><label class="check" id="age-field" hidden><input id="show-age" type="checkbox">日期包含出生年份，显示年龄</label><label>备注（可选）<input id="notes" maxlength="2000" placeholder="留下一句话"></label><label class="check"><input id="pinned" type="checkbox">置顶关注</label><button type="submit">加入待导入列表</button></form><p id="status" role="status"></p></section>
+<section><h2>待导入事件 <span id="count">0</span></h2><div class="table"><table><thead><tr><th>名称</th><th>日期</th><th>类型</th><th>重复</th><th>置顶</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div><div id="empty">还没有事件，从上面的表单开始。</div><div class="actions"><button id="download" disabled>下载手机导入文件</button></div><p class="note">本页面不联网，填写的数据只保留在当前页面；关闭或刷新前请下载文件。手机导入时会检查格式并跳过重复事件。</p></section></main>
+<script>
+'use strict';
+const events=[];
+const byId=id=>document.getElementById(id);
+const labels={none:'不重复',weekly:'每周重复',yearly:'每年重复'};
+const today=new Date(); byId('date').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+function render(){
+ const rows=byId('rows'); rows.replaceChildren();
+ events.forEach((e,index)=>{const tr=document.createElement('tr');
+  [e.icon+' '+e.title,e.date+(e.calendar==='lunar'?'（农历 '+e.lunar_year+' 年 '+monthLabel(e.lunar_month)+' '+e.lunar_day+' 日）':''),e.type==='anniversary'?'纪念日':e.birthday?'生日倒计时':'倒计时',labels[e.repeat],e.pinned?'是':'否'].forEach(text=>{const td=document.createElement('td');td.textContent=text;tr.append(td)});
+  const td=document.createElement('td');const btn=document.createElement('button');btn.className='secondary';btn.textContent='移除';btn.onclick=()=>{events.splice(index,1);render()};td.append(btn);tr.append(td);rows.append(tr);
+ });
+ byId('count').textContent=events.length;byId('empty').hidden=events.length>0;byId('download').disabled=events.length===0;
+}
+byId('form').onsubmit=e=>{e.preventDefault();const title=byId('title').value.trim();if(!title){byId('status').textContent='请填写事件名称';return}
+ const anniversary=byId('type').value==='anniversary';
+ if(byId('calendar').value==='lunar'&&!syncSolar())return;
+ const date=byId('date').value;
+ const dateToday=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+ if(anniversary && date>dateToday){byId('status').textContent='纪念日起始日期不能晚于今天，请选择倒计时';return}
+ const item={title,date,type:byId('type').value,repeat:anniversary?'none':byId('birthday').checked?'yearly':byId('repeat').value,pinned:byId('pinned').checked,icon:byId('icon').value,notes:byId('notes').value,inclusive:anniversary&&byId('inclusive').checked,birthday:!anniversary&&byId('birthday').checked,show_age:!anniversary&&byId('birthday').checked&&byId('show-age').checked,leap_policy:byId('leap').value};
+ if(byId('calendar').value==='lunar')Object.assign(item,{calendar:'lunar',lunar_year:Number(byId('lunar-year').value),lunar_month:Number(byId('lunar-month').value),lunar_day:Number(byId('lunar-day').value),lunar_leap_policy:byId('lunar-leap').value,lunar_short_policy:byId('lunar-short').value});
+ if(item.show_age&&date>dateToday){byId('status').textContent='出生日期不能晚于今天';return}
+ if(events.some(x=>x.title===item.title&&x.date===item.date&&x.type===item.type&&x.repeat===item.repeat&&(x.calendar||'solar')===(item.calendar||'solar'))){byId('status').textContent='列表中已有相同事件';return}
+ if(events.length>=5000){byId('status').textContent='单次最多 5000 条';return}
+ events.push(item);render();byId('title').value='';byId('title').focus();byId('status').textContent='已加入列表，请在完成后下载文件。';
+};
+function updateType(){const lunar=byId('calendar').value==='lunar';document.querySelectorAll('.lunar-field').forEach(el=>el.hidden=!lunar);byId('date').readOnly=lunar;byId('repeat').querySelector('[value=weekly]').disabled=lunar;if(lunar&&byId('repeat').value==='weekly')byId('repeat').value='yearly';const ann=byId('type').value==='anniversary';byId('date-label').textContent=ann?'起始日期':'目标日期 / 出生日期';byId('repeat-field').hidden=ann||byId('birthday').checked;byId('inclusive-field').hidden=!ann;byId('birthday-field').hidden=ann;byId('age-field').hidden=ann||!byId('birthday').checked;byId('leap-field').hidden=lunar||ann||(!byId('birthday').checked&&byId('repeat').value!=='yearly');}
+const lunarFormatter=new Intl.DateTimeFormat('en-u-ca-chinese',{year:'numeric',month:'numeric',day:'numeric',timeZone:'UTC'});
+const lunarCache=new Map();
+function lunarDays(year){
+ if(lunarCache.has(year))return lunarCache.get(year);
+ const rows=[];
+ for(let t=Date.UTC(year,0,1);t<Date.UTC(year+1,2,1);t+=86400000){const date=new Date(t),p=Object.fromEntries(lunarFormatter.formatToParts(date).map(v=>[v.type,v.value]));if(Number(p.relatedYear)===year)rows.push({month:parseInt(p.month,10)*(p.month.includes('bis')?-1:1),day:Number(p.day),solar:date.toISOString().slice(0,10)});}
+ lunarCache.set(year,rows);return rows;
+}
+function monthLabel(m){return (m<0?'闰':'')+['正','二','三','四','五','六','七','八','九','十','冬','腊'][Math.abs(m)-1]+'月';}
+function syncSolar(){
+ const year=Number(byId('lunar-year').value);
+ if(!Number.isInteger(year)||year<1900||year>2100){byId('status').textContent='农历年份应在 1900–2100 之间';return false}
+ const row=lunarDays(year).find(v=>v.month===Number(byId('lunar-month').value)&&v.day===Number(byId('lunar-day').value));
+ if(!row){byId('status').textContent='请检查农历日期';return false}byId('date').value=row.solar;return true;
+}
+function fillDays(){const year=Number(byId('lunar-year').value);if(!Number.isInteger(year)||year<1900||year>2100)return;const old=Number(byId('lunar-day').value)||1;const rows=lunarDays(year).filter(v=>v.month===Number(byId('lunar-month').value));byId('lunar-day').replaceChildren(...rows.map(v=>new Option(v.day+' 日',v.day)));byId('lunar-day').value=Math.min(old,rows.length);if(byId('calendar').value==='lunar')syncSolar()}
+function fillMonths(){const year=Number(byId('lunar-year').value);if(!Number.isInteger(year)||year<1900||year>2100)return;const old=Number(byId('lunar-month').value)||1;const rows=lunarDays(year).filter(v=>v.day===1);byId('lunar-month').replaceChildren(...rows.map(v=>new Option(monthLabel(v.month),v.month)));byId('lunar-month').value=rows.some(v=>v.month===old)?old:Math.abs(old);fillDays()}
+byId('lunar-year').onchange=fillMonths;byId('lunar-month').onchange=fillDays;byId('lunar-day').onchange=syncSolar;
+byId('calendar').onchange=()=>{updateType();if(byId('calendar').value==='lunar')syncSolar()};fillMonths();
+byId('type').onchange=updateType;byId('repeat').onchange=updateType;byId('birthday').onchange=()=>{if(byId('birthday').checked)byId('icon').value='🎂';updateType()};updateType();
+byId('download').onclick=()=>{const blob=new Blob([JSON.stringify({version:3,events},null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='days-import.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);byId('status').textContent='已请求下载。请检查下载目录，将文件传到手机。'};
+</script></html>

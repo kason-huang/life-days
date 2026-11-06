@@ -1,0 +1,4 @@
+title,date,type,repeat,pinned,inclusive,birthday,show_age,leap_policy,icon,notes
+我们相识的日子,2021-03-20,anniversary,none,true,false,false,false,feb28,♡,一起走过的时光
+妈妈的生日,1972-11-23,countdown,yearly,false,false,true,true,feb28,🎂,记得送上祝福
+下一次旅行,2026-12-12,countdown,none,false,false,false,false,feb28,✈️,

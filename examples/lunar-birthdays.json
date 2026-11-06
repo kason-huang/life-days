@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "events": [
+    {
+      "title": "妈妈的农历生日",
+      "date": "1972-11-20",
+      "type": "countdown",
+      "repeat": "yearly",
+      "birthday": true,
+      "show_age": false,
+      "calendar": "lunar",
+      "lunar_year": 1972,
+      "lunar_month": 10,
+      "lunar_day": 15,
+      "lunar_leap_policy": "prefer-leap",
+      "lunar_short_policy": "last",
+      "icon": "🎂",
+      "pinned": true
+    },
+    {
+      "title": "闰二月生日示例",
+      "date": "2023-03-22",
+      "type": "countdown",
+      "repeat": "yearly",
+      "birthday": true,
+      "show_age": false,
+      "calendar": "lunar",
+      "lunar_year": 2023,
+      "lunar_month": -2,
+      "lunar_day": 1,
+      "lunar_leap_policy": "prefer-leap",
+      "lunar_short_policy": "last",
+      "icon": "🎂"
+    }
+  ]
+}

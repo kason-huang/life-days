@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "events": [
+    {
+      "title": "我们相识的日子",
+      "date": "2021-03-20",
+      "type": "anniversary",
+      "repeat": "none",
+      "pinned": true,
+      "icon": "♡",
+      "inclusive": false
+    },
+    {
+      "title": "妈妈的生日",
+      "date": "1972-11-23",
+      "type": "countdown",
+      "repeat": "yearly",
+      "birthday": true,
+      "show_age": true,
+      "icon": "🎂",
+      "leap_policy": "feb28"
+    },
+    {
+      "title": "下一次旅行",
+      "date": "2026-12-12",
+      "type": "countdown",
+      "repeat": "none",
+      "icon": "✈️"
+    }
+  ]
+}

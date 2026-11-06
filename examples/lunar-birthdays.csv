@@ -1,0 +1,3 @@
+title,date,type,repeat,birthday,show_age,calendar,lunar_year,lunar_month,lunar_day,lunar_leap_policy,lunar_short_policy,icon,pinned
+妈妈的农历生日,1972-11-20,countdown,yearly,true,false,lunar,1972,10,15,prefer-leap,last,🎂,true
+闰二月生日示例,2023-03-22,countdown,yearly,true,false,lunar,2023,-2,1,prefer-leap,last,🎂,
